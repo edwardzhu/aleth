@@ -6,7 +6,6 @@
 
 #include "Common.h"
 #include "db.h"
-
 #include <boost/filesystem.hpp>
 #include <boost/program_options/options_description.hpp>
 
@@ -18,7 +17,8 @@ enum class DatabaseKind
 {
     LevelDB,
     RocksDB,
-    MemoryDB
+    MemoryDB,
+    MongoDB
 };
 
 /// Provide a set of program options related to databases
@@ -45,8 +45,8 @@ public:
     static std::unique_ptr<DatabaseFace> create(DatabaseKind _kind);
     static std::unique_ptr<DatabaseFace> create(
         DatabaseKind _kind, boost::filesystem::path const& _path);
-
 private:
+    static void initMongoDB(std::string const& _uri);
 };
 }  // namespace db
 }  // namespace dev

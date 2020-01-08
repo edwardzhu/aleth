@@ -5,7 +5,7 @@ include(GoogleTest)
 
 hunter_add_package(GTest)
 find_package(GTest CONFIG REQUIRED)
-
+find_package(Mongocxx REQUIRED)
 set(unittest_sources
     unittests/libdevcore/CommonJS.cpp
     unittests/libdevcore/core.cpp
@@ -39,10 +39,10 @@ set(unittest_sources
 )
 
 add_executable(aleth-unittests ${unittest_sources})
-target_include_directories(aleth-unittests PRIVATE ${UTILS_INCLUDE_DIR})
+target_include_directories(aleth-unittests PRIVATE ${UTILS_INCLUDE_DIR} ${MONGOCXX_INCLUDE_DIR})
 target_link_libraries(aleth-unittests PRIVATE
     web3jsonrpc ethashseal devcrypto devcore
-    GTest::gtest GTest::gtest_main
+    GTest::gtest GTest::gtest_main ${MONGOCXX_LIBRARY}
 )
 gtest_add_tests(TARGET aleth-unittests TEST_PREFIX unittests/ TEST_LIST unittests)
 set_tests_properties(${unittests} PROPERTIES TIMEOUT ${timeout})
@@ -115,10 +115,9 @@ configure_file(tools/libtesteth/AllTestNames.h.in ${PROJECT_BINARY_DIR}/AllTestN
 
 hunter_add_package(yaml-cpp)
 find_package(yaml-cpp CONFIG REQUIRED)
-
 add_executable(testeth ${sources})
-target_include_directories(testeth PRIVATE ${UTILS_INCLUDE_DIR})
-target_link_libraries(testeth PRIVATE ethereum ethashseal web3jsonrpc devcrypto devcore aleth-buildinfo cryptopp-static yaml-cpp::yaml-cpp binaryen::binaryen libjson-rpc-cpp::client)
+target_include_directories(testeth PRIVATE ${UTILS_INCLUDE_DIR} ${MONGOCXX_INCLUDE_DIR})
+target_link_libraries(testeth PRIVATE ethereum ethashseal web3jsonrpc devcrypto devcore aleth-buildinfo cryptopp-static yaml-cpp::yaml-cpp binaryen::binaryen libjson-rpc-cpp::client ${MONGOCXX_LIBRARY})
 install(TARGETS testeth DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 set_property(SOURCE tools/libtesteth/TestHelper.cpp PROPERTY COMPILE_DEFINITIONS BINARYEN_VERSION=${BINARYEN_VERSION})

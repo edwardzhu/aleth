@@ -42,6 +42,8 @@ public:
     virtual bool exists(Slice _key) const = 0;
     virtual void insert(Slice _key, Slice _value) = 0;
     virtual void kill(Slice _key) = 0;
+    virtual void insert_string(std::string const & /*_key*/, std::string const & /*_value*/) {}
+    virtual std::string lookup_string(const std::string& /*_key*/) const { return ""; }
 
     virtual std::unique_ptr<WriteBatchFace> createWriteBatch() const = 0;
     virtual void commit(std::unique_ptr<WriteBatchFace> _batch) = 0;

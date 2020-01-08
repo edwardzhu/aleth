@@ -204,6 +204,7 @@ void SnapshotImporter::importBlockChunks(SnapshotStorageFace const& _snapshotSto
 
         LOG(m_logger) << "Imported chunk " << *chunk << " (" << itemCount - 3 << " blocks)";
         LOG(m_logger) << blockChunkCount - (++blockChunksImported) << " chunks left to import";
+        m_database->insert_string("latest_block_height", std::to_string(blockChunksImported));
 
         if (chunk == _blockChunkHashes.rbegin())
         {

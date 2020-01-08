@@ -5,6 +5,7 @@
 #include "FileSystem.h"
 #include "LevelDB.h"
 #include "MemoryDB.h"
+#include "MongoDB.h"
 #include "libethcore/Exceptions.h"
 
 #if ALETH_ROCKSDB
@@ -20,6 +21,8 @@ namespace po = boost::program_options;
 
 auto g_kind = DatabaseKind::LevelDB;
 fs::path g_dbPath;
+std::string g_dbName;
+std::string g_dbUrl;
 
 /// A helper type to build the table of DB implementations.
 ///
@@ -41,7 +44,21 @@ DBKindTableEntry dbKindsTable[] = {
     {DatabaseKind::RocksDB, "rocksdb"},
 #endif
     {DatabaseKind::MemoryDB, "memorydb"},
+    {DatabaseKind::MongoDB, "mongodb"}
 };
+
+static std::shared_ptr<MongoDBInstance> s_pMongoInstance;
+static std::mutex s_MongoMutex;
+
+void setDBUrl(std::string const& dbUrl)
+{
+    g_dbUrl = dbUrl;
+}
+
+void setDbName(std::string const& dbName)
+{
+    g_dbName = dbName;
+}
 
 void setDatabaseKindByName(std::string const& _name)
 {
@@ -87,7 +104,9 @@ DatabaseKind databaseKind()
 
 fs::path databasePath()
 {
-    return g_dbPath.empty() ? getDataDir() : g_dbPath;
+    auto path = g_dbPath.empty() ? getDataDir() : g_dbPath;
+    std::cout << "Database Path: " << path.string() << std::endl;
+    return path;
 }
 
 po::options_description databaseProgramOptions(unsigned _lineLength)
@@ -119,6 +138,8 @@ po::options_description databaseProgramOptions(unsigned _lineLength)
             ->default_value(getDataDir().string())
             ->notifier(setDatabasePath),
         "Database path (for non-memory database options)\n");
+    add("db-url", po::value<std::string>()->value_name("<path>")->default_value("mongodb://127.0.0.1:27017")->notifier(setDBUrl), "The mongoDB url.");
+    add("db-name", po::value<std::string>()->value_name("<db-name>")->default_value("ethereum")->notifier(setDbName), "The MongoDB name.");
 
     return opts;
 }
@@ -155,12 +176,25 @@ std::unique_ptr<DatabaseFace> DBFactory::create(DatabaseKind _kind, fs::path con
         // when using an in-memory database
         return std::unique_ptr<DatabaseFace>(new MemoryDB());
         break;
+    case DatabaseKind::MongoDB:
+        initMongoDB(g_dbUrl);
+        return std::make_unique<MongoDB>(_path, s_pMongoInstance, g_dbName);
+        break;
     default:
         assert(false);
         return {};
     }
 }
 
+void DBFactory::initMongoDB(std::string const& _uri)
+{
+    std::cout << "Initialize MongoDB: " << _uri << std::endl;
+    std::lock_guard<std::mutex> lock(s_MongoMutex);
+    if (!s_pMongoInstance)
+    {
+        s_pMongoInstance = std::make_shared<MongoDBInstance>(_uri);
+    }
+}
 
 }  // namespace db
 }  // namespace dev

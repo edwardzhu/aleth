@@ -196,12 +196,11 @@ bool BlockChain::open(fs::path const& _path, WithExisting _we)
 {
     unsigned lastMinor = c_databaseMinorVersion;
     bool rebuildNeeded = false;
+    if (!m_dbPaths || m_dbPaths->rootPath() != _path)
+            m_dbPaths = make_unique<DatabasePaths>(_path, m_genesisHash);
 
     if (db::isDiskDatabase())
     {
-        if (!m_dbPaths || m_dbPaths->rootPath() != _path)
-            m_dbPaths = make_unique<DatabasePaths>(_path, m_genesisHash);
-
         if (_we == WithExisting::Kill)
         {
             LOG(m_loggerInfo)
