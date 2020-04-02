@@ -38,6 +38,8 @@ add_library(
     MemoryDB.h
     OverlayDB.cpp
     OverlayDB.h
+    MongoDB.h
+    MongoDB.cpp
     RLP.cpp
     RLP.h
     SHA3.cpp
@@ -66,6 +68,8 @@ target_link_libraries(devcore PUBLIC aleth-buildinfo Boost::filesystem Boost::sy
 hunter_add_package(leveldb)
 find_package(leveldb CONFIG REQUIRED)
 target_link_libraries(devcore PRIVATE leveldb::leveldb)
+find_package(Mongocxx REQUIRED)
+target_include_directories(devcore PUBLIC ${MONGOCXX_INCLUDE_DIR})
 
 if(ROCKSDB)
     hunter_add_package(rocksdb)
